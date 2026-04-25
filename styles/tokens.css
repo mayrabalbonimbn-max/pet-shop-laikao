@@ -3,17 +3,25 @@
   --font-body: "Manrope", system-ui, sans-serif;
   --font-mono: "JetBrains Mono", ui-monospace, monospace;
 
-  --brand-50: #fbf7ff;
-  --brand-100: #f2e9ff;
-  --brand-200: #dfcbff;
-  --brand-300: #c79eff;
-  --brand-400: #a96aff;
-  --brand-500: #8d39f4;
-  --brand-600: #7427d1;
-  --brand-700: #5d1da6;
-  --brand-800: #49167d;
-  --brand-900: #341255;
-  --brand-950: #201033;
+  --brand-50: #fcf7ff;
+  --brand-100: #f5e9ff;
+  --brand-200: #e7cfff;
+  --brand-300: #d6a7ff;
+  --brand-400: #bd74ff;
+  --brand-500: #9f38f6;
+  --brand-600: #8122dc;
+  --brand-700: #6817b5;
+  --brand-800: #51108d;
+  --brand-900: #3d0f67;
+  --brand-950: #2b0e46;
+
+  --magenta-100: #ffe0f3;
+  --magenta-300: #ff94d2;
+  --magenta-500: #ef4fb3;
+  --magenta-600: #d63a9c;
+  --sun-100: #fff1a8;
+  --sun-300: #ffd85a;
+  --sun-500: #ffbe1b;
 
   --sand-50: #fffdfb;
   --sand-100: #faf4ee;

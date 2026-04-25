@@ -196,10 +196,10 @@ export function CheckoutPageClient() {
       <div className="mt-8 grid gap-6 xl:grid-cols-[1fr_0.82fr]">
         <div className="space-y-5">
           {[1, 2, 3].map((item) => (
-            <div key={item} className="surface-default h-56 animate-pulse border border-stone-100 bg-white" />
+            <div key={item} className="surface-default h-56 animate-pulse border border-brand-100/60 bg-brand-50/60" />
           ))}
         </div>
-        <div className="surface-default h-80 animate-pulse border border-stone-100 bg-white" />
+        <div className="surface-default h-80 animate-pulse border border-brand-100/60 bg-brand-50/60" />
       </div>
     );
   }
@@ -226,7 +226,7 @@ export function CheckoutPageClient() {
     return (
       <div className="mt-8 grid gap-6 xl:grid-cols-[1fr_0.82fr]">
         <section className="space-y-5">
-          <article className="surface-default border border-stone-100 bg-white p-5 shadow-[var(--shadow-soft)] sm:p-6">
+          <article className="surface-default border border-brand-100/70 bg-linear-to-br from-white via-brand-50/40 to-[#f3edff] p-5 shadow-[var(--shadow-soft)] sm:p-6">
             <div className="flex items-start justify-between gap-4">
               <div className="space-y-2">
                 <p className="eyebrow">Retorno do pagamento</p>
@@ -270,12 +270,12 @@ export function CheckoutPageClient() {
                 )}
 
                 <div className="grid gap-4 md:grid-cols-2">
-                  <div className="rounded-[var(--radius-lg)] border border-stone-100 bg-sand-50 p-4">
+                  <div className="rounded-[var(--radius-lg)] border border-brand-100/70 bg-white/80 p-4">
                     <p className="text-sm text-stone-500">Valor</p>
                     <p className="mt-2 font-heading text-2xl font-semibold text-brand-700">{paymentStatusView.payment.amountLabel}</p>
                     <p className="mt-2 text-xs text-stone-500">{paymentPurposeLabels[paymentStatusView.payment.purpose]}</p>
                   </div>
-                  <div className="rounded-[var(--radius-lg)] border border-stone-100 bg-sand-50 p-4">
+                  <div className="rounded-[var(--radius-lg)] border border-brand-100/70 bg-white/80 p-4">
                     <p className="text-sm text-stone-500">Status do pedido</p>
                     <p className="mt-2 font-semibold text-ink-900">{paymentStatusView.order?.orderNumber ?? "Pedido vinculado"}</p>
                     <p className="mt-2 text-xs text-stone-500">
@@ -465,7 +465,7 @@ export function CheckoutPageClient() {
           />
         </div>
 
-        <article className="surface-default border border-stone-100 bg-white p-5 shadow-[var(--shadow-soft)] sm:p-6">
+        <article className="surface-default border border-brand-100/70 bg-linear-to-br from-white via-brand-50/35 to-[#f4efff] p-5 shadow-[var(--shadow-soft)] sm:p-6">
           <div className="flex items-center gap-3">
             <div className="flex h-11 w-11 items-center justify-center rounded-[16px] bg-brand-100 text-brand-700">
               <UserRound className="h-5 w-5" />
@@ -501,7 +501,7 @@ export function CheckoutPageClient() {
           ) : null}
         </article>
 
-        <article className="surface-default border border-stone-100 bg-white p-5 shadow-[var(--shadow-soft)] sm:p-6">
+        <article className="surface-default border border-brand-100/70 bg-linear-to-br from-white via-brand-50/30 to-[#f5f0ff] p-5 shadow-[var(--shadow-soft)] sm:p-6">
           <div className="flex items-center gap-3">
             <div className="flex h-11 w-11 items-center justify-center rounded-[16px] bg-brand-100 text-brand-700">
               <MapPinned className="h-5 w-5" />
@@ -524,7 +524,7 @@ export function CheckoutPageClient() {
           </div>
         </article>
 
-        <article className="surface-default border border-stone-100 bg-white p-5 shadow-[var(--shadow-soft)] sm:p-6">
+        <article className="surface-default border border-brand-100/70 bg-linear-to-br from-white via-brand-50/30 to-[#f5efff] p-5 shadow-[var(--shadow-soft)] sm:p-6">
           <div className="flex items-center gap-3">
             <div className="flex h-11 w-11 items-center justify-center rounded-[16px] bg-brand-100 text-brand-700">
               <PackageCheck className="h-5 w-5" />
@@ -536,11 +536,11 @@ export function CheckoutPageClient() {
           </div>
 
           <div className="mt-5 grid gap-4 md:grid-cols-2">
-            <div className="rounded-[var(--radius-lg)] border border-stone-100 bg-sand-50 p-4">
+            <div className="rounded-[var(--radius-lg)] border border-brand-100/70 bg-white/80 p-4">
               <p className="text-sm text-stone-500">Itens</p>
               <p className="mt-2 font-semibold text-ink-900">{preview.cart.items.length} produtos selecionados</p>
             </div>
-            <div className="rounded-[var(--radius-lg)] border border-stone-100 bg-sand-50 p-4">
+            <div className="rounded-[var(--radius-lg)] border border-brand-100/70 bg-white/80 p-4">
               <p className="text-sm text-stone-500">Retirada</p>
               <p className="mt-2 font-semibold text-ink-900">{deliveryMode === "pickup" ? "Loja fisica" : "Entrega local"}</p>
             </div>
@@ -552,7 +552,7 @@ export function CheckoutPageClient() {
           </label>
         </article>
 
-        <article className="surface-default border border-stone-100 bg-white p-5 shadow-[var(--shadow-soft)] sm:p-6">
+        <article className="surface-default border border-brand-100/70 bg-linear-to-br from-white via-brand-50/35 to-[#f2ebff] p-5 shadow-[var(--shadow-soft)] sm:p-6">
           <div className="flex items-center gap-3">
             <div className="flex h-11 w-11 items-center justify-center rounded-[16px] bg-brand-100 text-brand-700">
               <CreditCard className="h-5 w-5" />
@@ -563,7 +563,7 @@ export function CheckoutPageClient() {
             </div>
           </div>
 
-          <div className="mt-5 rounded-[var(--radius-lg)] border border-brand-100 bg-brand-50/60 p-4">
+          <div className="mt-5 rounded-[var(--radius-lg)] border border-brand-200/80 bg-brand-100/55 p-4">
             <p className="text-sm font-semibold text-brand-700">Fluxo financeiro protegido</p>
             <p className="mt-1 text-sm leading-6 text-stone-500">
               O pedido so muda de estado quando o payment layer confirma o resultado. A interface apenas dispara a acao e exibe o retorno real.

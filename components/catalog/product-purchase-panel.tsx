@@ -60,23 +60,24 @@ export function ProductPurchasePanel({ product }: { product: ProductRecord }) {
   };
 
   return (
-    <div className="surface-default border border-stone-100 bg-white p-6 shadow-[var(--shadow-soft)]">
+    <div className="surface-default border border-brand-100/70 bg-[linear-gradient(180deg,rgba(255,255,255,0.96),rgba(245,233,255,0.55))] p-6 shadow-[var(--shadow-soft)]">
       <div className="space-y-3">
         <p className="eyebrow">Produto individual</p>
         <h2 className="page-title">{product.name}</h2>
         <div className="flex flex-wrap items-center gap-3">
           <StockStatusBadge status={stockStatus} />
-          <span className="inline-flex rounded-full bg-brand-50 px-2.5 py-1 text-xs font-semibold text-brand-700">
+          <span className="inline-flex rounded-full bg-[var(--magenta-100)] px-2.5 py-1 text-xs font-semibold text-[var(--magenta-600)]">
             {activeVariants.length} {activeVariants.length === 1 ? "versao disponivel" : "variantes disponiveis"}
           </span>
+          <span className="inline-flex rounded-full bg-[var(--sun-100)] px-2.5 py-1 text-xs font-semibold text-ink-900">Entrega ou retirada</span>
         </div>
       </div>
 
-      <div className="mt-6 rounded-[var(--radius-lg)] border border-stone-100 bg-sand-50 p-5">
+      <div className="mt-6 rounded-[var(--radius-lg)] border border-brand-100/70 bg-white/80 p-5">
         <p className="text-sm text-stone-500">Preco</p>
         <p className="mt-2 font-heading text-4xl font-semibold text-brand-700">{priceLabel}</p>
         <p className="mt-2 text-sm leading-6 text-stone-500">
-          Estoque e atendimento aparecem com clareza para a decisao ficar simples no celular.
+          Estoque, compra rápida e apoio no WhatsApp aparecem com mais força para fechar a venda.
         </p>
       </div>
 

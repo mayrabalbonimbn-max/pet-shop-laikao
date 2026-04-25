@@ -7,23 +7,33 @@ import { cn } from "@/lib/utils";
 const shortcutMeta = {
   whatsapp: {
     icon: MessageCircle,
-    accent: "bg-success-500/10 text-success-500 border-success-500/20"
+    card: "border-success-500/15 bg-white hover:border-success-500/35",
+    accent: "bg-success-500/10 text-success-500 border-success-500/20",
+    badge: "bg-success-500/10 text-success-500"
   },
   instagram: {
     icon: Instagram,
-    accent: "bg-brand-100 text-brand-700 border-brand-200"
+    card: "border-[var(--magenta-300)]/60 bg-white hover:border-[var(--magenta-300)]",
+    accent: "bg-[var(--magenta-100)] text-[var(--magenta-600)] border-[var(--magenta-300)]",
+    badge: "bg-[var(--magenta-100)] text-[var(--magenta-600)]"
   },
   map: {
     icon: MapPinned,
-    accent: "bg-info-500/10 text-info-500 border-info-500/20"
+    card: "border-brand-100/70 bg-white hover:border-brand-300",
+    accent: "bg-brand-100 text-brand-700 border-brand-200",
+    badge: "bg-brand-100 text-brand-700"
   },
   schedule: {
     icon: CalendarDays,
-    accent: "bg-brand-50 text-brand-700 border-brand-200"
+    card: "border-brand-200/70 bg-[linear-gradient(135deg,rgba(255,255,255,0.96),rgba(245,233,255,0.76))] hover:border-brand-400",
+    accent: "bg-brand-500 text-white border-brand-400",
+    badge: "bg-[var(--sun-100)] text-ink-900"
   },
   ifood: {
     icon: ShoppingBag,
-    accent: "bg-sand-100 text-ink-900 border-stone-100"
+    card: "border-[var(--sun-300)] bg-[linear-gradient(135deg,rgba(255,255,255,0.98),rgba(255,241,168,0.72))]",
+    accent: "bg-[var(--sun-100)] text-ink-900 border-[var(--sun-300)]",
+    badge: "bg-[var(--magenta-100)] text-[var(--magenta-600)]"
   }
 } as const;
 
@@ -49,18 +59,16 @@ export function PracticalLinksGrid({
           return (
             <article
               key={key}
-              className="rounded-[var(--radius-lg)] border border-dashed border-brand-200 bg-white px-4 py-4 shadow-[var(--shadow-soft)]"
+              className={cn(
+                "rounded-[var(--radius-lg)] border px-4 py-4 shadow-[var(--shadow-soft)] transition-all",
+                shortcutMeta[key].card
+              )}
             >
               <div className="flex items-start justify-between gap-3">
-                <div
-                  className={cn(
-                    "flex h-11 w-11 items-center justify-center rounded-[16px] border",
-                    shortcutMeta[key].accent
-                  )}
-                >
+                <div className={cn("flex h-11 w-11 items-center justify-center rounded-[16px] border", shortcutMeta[key].accent)}>
                   <Icon className="h-5 w-5" />
                 </div>
-                <span className="rounded-full bg-brand-50 px-2.5 py-1 text-[11px] font-semibold uppercase tracking-[0.16em] text-brand-700">
+                <span className={cn("rounded-full px-2.5 py-1 text-[11px] font-semibold uppercase tracking-[0.16em]", shortcutMeta[key].badge)}>
                   Em breve
                 </span>
               </div>
@@ -72,12 +80,7 @@ export function PracticalLinksGrid({
 
         const content = (
           <>
-            <div
-              className={cn(
-                "flex h-11 w-11 items-center justify-center rounded-[16px] border transition-transform group-hover:scale-[1.03]",
-                shortcutMeta[key].accent
-              )}
-            >
+            <div className={cn("flex h-11 w-11 items-center justify-center rounded-[16px] border transition-transform group-hover:scale-[1.03]", shortcutMeta[key].accent)}>
               <Icon className="h-5 w-5" />
             </div>
             <div className="mt-4 flex items-center justify-between gap-3">
@@ -88,8 +91,10 @@ export function PracticalLinksGrid({
           </>
         );
 
-        const classNameValue =
-          "group rounded-[var(--radius-lg)] border border-stone-100 bg-white px-4 py-4 shadow-[var(--shadow-soft)] transition-all hover:-translate-y-0.5 hover:border-brand-200 hover:shadow-[var(--shadow-elevated)]";
+        const classNameValue = cn(
+          "group rounded-[var(--radius-lg)] border px-4 py-4 shadow-[var(--shadow-soft)] transition-all hover:-translate-y-0.5 hover:shadow-[var(--shadow-elevated)]",
+          shortcutMeta[key].card
+        );
 
         return isExternal ? (
           <a key={key} href={item.href} target="_blank" rel="noreferrer" className={classNameValue}>
