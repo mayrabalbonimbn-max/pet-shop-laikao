@@ -1,0 +1,120 @@
+@import "tailwindcss";
+@import "../styles/tokens.css";
+
+@theme inline {
+  --font-sans: var(--font-body);
+  --font-heading: var(--font-heading);
+  --font-mono: var(--font-mono);
+
+  --color-brand-50: var(--brand-50);
+  --color-brand-100: var(--brand-100);
+  --color-brand-200: var(--brand-200);
+  --color-brand-300: var(--brand-300);
+  --color-brand-400: var(--brand-400);
+  --color-brand-500: var(--brand-500);
+  --color-brand-600: var(--brand-600);
+  --color-brand-700: var(--brand-700);
+  --color-brand-800: var(--brand-800);
+  --color-brand-900: var(--brand-900);
+  --color-brand-950: var(--brand-950);
+  --color-sand-50: var(--sand-50);
+  --color-sand-100: var(--sand-100);
+  --color-sand-200: var(--sand-200);
+  --color-stone-100: var(--stone-100);
+  --color-stone-300: var(--stone-300);
+  --color-stone-500: var(--stone-500);
+  --color-ink-700: var(--ink-700);
+  --color-ink-900: var(--ink-900);
+  --color-teal-500: var(--teal-500);
+  --color-amber-500: var(--amber-500);
+  --color-rose-500: var(--rose-500);
+  --color-success-500: var(--success-500);
+  --color-warning-500: var(--warning-500);
+  --color-error-500: var(--error-500);
+  --color-info-500: var(--info-500);
+  --color-partial-500: var(--partial-500);
+  --color-low-stock-500: var(--low-stock-500);
+  --color-blocked-500: var(--blocked-500);
+
+  --radius-sm: var(--radius-sm);
+  --radius-md: var(--radius-md);
+  --radius-lg: var(--radius-lg);
+  --radius-xl: var(--radius-xl);
+}
+
+@layer base {
+  * {
+    @apply border-stone-100;
+  }
+
+  html {
+    scroll-behavior: smooth;
+    background-color: var(--brand-50);
+  }
+
+  body {
+    @apply bg-sand-50 text-ink-900 antialiased;
+    font-family: var(--font-body);
+    min-height: 100vh;
+  }
+
+  h1,
+  h2,
+  h3,
+  h4,
+  h5,
+  h6 {
+    font-family: var(--font-heading);
+    letter-spacing: -0.03em;
+    color: var(--ink-900);
+  }
+
+  a {
+    @apply transition-colors;
+  }
+
+  button,
+  input,
+  select,
+  textarea {
+    font: inherit;
+  }
+}
+
+@layer components {
+  .page-shell {
+    @apply min-h-screen bg-[linear-gradient(180deg,var(--brand-50)_0%,#ffffff_20%,var(--sand-50)_100%)] text-ink-900;
+  }
+
+  .content-container {
+    @apply mx-auto w-full max-w-7xl px-4 sm:px-6 lg:px-8;
+  }
+
+  .section-stack {
+    @apply space-y-10 sm:space-y-12;
+  }
+
+  .surface-default {
+    @apply rounded-[var(--radius-lg)] border border-stone-100 bg-white shadow-[var(--shadow-soft)];
+  }
+
+  .surface-muted {
+    @apply rounded-[var(--radius-lg)] border border-brand-100 bg-white text-ink-900 shadow-[var(--shadow-soft)];
+  }
+
+  .surface-critical {
+    @apply rounded-[var(--radius-lg)] border border-rose-500/15 bg-rose-500/5 shadow-[var(--shadow-soft)];
+  }
+
+  .eyebrow {
+    @apply text-xs font-semibold uppercase tracking-[0.22em] text-brand-400;
+  }
+
+  .page-title {
+    @apply font-heading text-3xl leading-tight font-semibold sm:text-4xl;
+  }
+
+  .section-title {
+    @apply font-heading text-2xl leading-tight font-semibold sm:text-3xl;
+  }
+}

@@ -1,0 +1,397 @@
+import fs from "node:fs";
+import path from "node:path";
+
+import Database from "better-sqlite3";
+
+declare global {
+  // eslint-disable-next-line no-var
+  var __laikaoDbBootstrapped: boolean | undefined;
+}
+
+function resolveSqliteDatabasePath() {
+  const databaseUrl = process.env.DATABASE_URL ?? "file:./dev.db";
+
+  if (!databaseUrl.startsWith("file:")) {
+    throw new Error("Only SQLite file URLs are supported for the local persistence bootstrap.");
+  }
+
+  const filePath = databaseUrl.replace("file:", "");
+
+  if (path.isAbsolute(filePath)) {
+    return filePath;
+  }
+
+  return path.join(process.cwd(), "prisma", filePath.replace(/^\.\//, ""));
+}
+
+const tableStatements = [
+  `PRAGMA foreign_keys = ON;`,
+  `CREATE TABLE IF NOT EXISTS "AppointmentService" (
+    "id" TEXT NOT NULL PRIMARY KEY,
+    "slug" TEXT NOT NULL UNIQUE,
+    "name" TEXT NOT NULL,
+    "description" TEXT NOT NULL,
+    "durationMinutes" INTEGER NOT NULL,
+    "priceCents" INTEGER NOT NULL,
+    "active" BOOLEAN NOT NULL DEFAULT 1,
+    "createdAt" DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    "updatedAt" DATETIME NOT NULL
+  );`,
+  `CREATE TABLE IF NOT EXISTS "Customer" (
+    "id" TEXT NOT NULL PRIMARY KEY,
+    "fullName" TEXT NOT NULL,
+    "phone" TEXT NOT NULL UNIQUE,
+    "email" TEXT,
+    "createdAt" DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    "updatedAt" DATETIME NOT NULL
+  );`,
+  `CREATE TABLE IF NOT EXISTS "Pet" (
+    "id" TEXT NOT NULL PRIMARY KEY,
+    "customerId" TEXT NOT NULL,
+    "name" TEXT NOT NULL,
+    "species" TEXT NOT NULL,
+    "breed" TEXT,
+    "size" TEXT NOT NULL,
+    "createdAt" DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    "updatedAt" DATETIME NOT NULL,
+    FOREIGN KEY ("customerId") REFERENCES "Customer" ("id") ON DELETE CASCADE ON UPDATE CASCADE
+  );`,
+  `CREATE TABLE IF NOT EXISTS "Appointment" (
+    "id" TEXT NOT NULL PRIMARY KEY,
+    "serviceId" TEXT NOT NULL,
+    "customerId" TEXT NOT NULL,
+    "petId" TEXT NOT NULL,
+    "scheduledStartAt" DATETIME NOT NULL,
+    "scheduledEndAt" DATETIME NOT NULL,
+    "status" TEXT NOT NULL,
+    "paymentStatus" TEXT NOT NULL,
+    "paymentOption" TEXT NOT NULL,
+    "paymentMethod" TEXT NOT NULL,
+    "amountDueCents" INTEGER NOT NULL,
+    "amountPaidCents" INTEGER NOT NULL,
+    "amountBalanceCents" INTEGER NOT NULL,
+    "createdAt" DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    "updatedAt" DATETIME NOT NULL,
+    FOREIGN KEY ("serviceId") REFERENCES "AppointmentService" ("id") ON DELETE RESTRICT ON UPDATE CASCADE,
+    FOREIGN KEY ("customerId") REFERENCES "Customer" ("id") ON DELETE RESTRICT ON UPDATE CASCADE,
+    FOREIGN KEY ("petId") REFERENCES "Pet" ("id") ON DELETE RESTRICT ON UPDATE CASCADE
+  );`,
+  `CREATE TABLE IF NOT EXISTS "AppointmentHold" (
+    "id" TEXT NOT NULL PRIMARY KEY,
+    "appointmentId" TEXT NOT NULL,
+    "serviceId" TEXT NOT NULL,
+    "customerId" TEXT,
+    "petId" TEXT,
+    "slotReference" TEXT NOT NULL,
+    "scheduledStartAt" DATETIME NOT NULL,
+    "scheduledEndAt" DATETIME NOT NULL,
+    "status" TEXT NOT NULL,
+    "createdAt" DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    "expiresAt" DATETIME NOT NULL,
+    "releasedAt" DATETIME,
+    FOREIGN KEY ("appointmentId") REFERENCES "Appointment" ("id") ON DELETE CASCADE ON UPDATE CASCADE,
+    FOREIGN KEY ("serviceId") REFERENCES "AppointmentService" ("id") ON DELETE RESTRICT ON UPDATE CASCADE,
+    FOREIGN KEY ("customerId") REFERENCES "Customer" ("id") ON DELETE SET NULL ON UPDATE CASCADE,
+    FOREIGN KEY ("petId") REFERENCES "Pet" ("id") ON DELETE SET NULL ON UPDATE CASCADE
+  );`,
+  `CREATE TABLE IF NOT EXISTS "AppointmentTimeline" (
+    "id" TEXT NOT NULL PRIMARY KEY,
+    "appointmentId" TEXT NOT NULL,
+    "label" TEXT NOT NULL,
+    "description" TEXT NOT NULL,
+    "createdAt" DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    FOREIGN KEY ("appointmentId") REFERENCES "Appointment" ("id") ON DELETE CASCADE ON UPDATE CASCADE
+  );`,
+  `CREATE TABLE IF NOT EXISTS "AvailabilityRule" (
+    "id" TEXT NOT NULL PRIMARY KEY,
+    "serviceId" TEXT,
+    "weekday" INTEGER NOT NULL,
+    "startsAt" TEXT NOT NULL,
+    "endsAt" TEXT NOT NULL,
+    "slotIntervalMinutes" INTEGER NOT NULL,
+    "capacity" INTEGER NOT NULL,
+    "active" BOOLEAN NOT NULL DEFAULT 1,
+    "createdAt" DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    "updatedAt" DATETIME NOT NULL,
+    FOREIGN KEY ("serviceId") REFERENCES "AppointmentService" ("id") ON DELETE SET NULL ON UPDATE CASCADE
+  );`,
+  `CREATE TABLE IF NOT EXISTS "CalendarBlock" (
+    "id" TEXT NOT NULL PRIMARY KEY,
+    "serviceId" TEXT,
+    "startsAt" DATETIME NOT NULL,
+    "endsAt" DATETIME NOT NULL,
+    "reason" TEXT NOT NULL,
+    "createdAt" DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    "updatedAt" DATETIME NOT NULL,
+    FOREIGN KEY ("serviceId") REFERENCES "AppointmentService" ("id") ON DELETE SET NULL ON UPDATE CASCADE
+  );`,
+  `CREATE TABLE IF NOT EXISTS "Category" (
+    "id" TEXT NOT NULL PRIMARY KEY,
+    "name" TEXT NOT NULL,
+    "slug" TEXT NOT NULL UNIQUE,
+    "description" TEXT,
+    "parentId" TEXT,
+    "active" BOOLEAN NOT NULL DEFAULT 1,
+    "displayOrder" INTEGER NOT NULL DEFAULT 0,
+    "createdAt" DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    "updatedAt" DATETIME NOT NULL,
+    FOREIGN KEY ("parentId") REFERENCES "Category" ("id") ON DELETE SET NULL ON UPDATE CASCADE
+  );`,
+  `CREATE TABLE IF NOT EXISTS "Product" (
+    "id" TEXT NOT NULL PRIMARY KEY,
+    "categoryId" TEXT,
+    "slug" TEXT NOT NULL UNIQUE,
+    "name" TEXT NOT NULL,
+    "description" TEXT NOT NULL,
+    "status" TEXT NOT NULL,
+    "featured" BOOLEAN NOT NULL DEFAULT 0,
+    "imageLabel" TEXT NOT NULL,
+    "mainImageUrl" TEXT,
+    "active" BOOLEAN NOT NULL DEFAULT 1,
+    "createdAt" DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    "updatedAt" DATETIME NOT NULL,
+    FOREIGN KEY ("categoryId") REFERENCES "Category" ("id") ON DELETE SET NULL ON UPDATE CASCADE
+  );`,
+  `CREATE TABLE IF NOT EXISTS "ProductVariant" (
+    "id" TEXT NOT NULL PRIMARY KEY,
+    "productId" TEXT NOT NULL,
+    "slug" TEXT NOT NULL UNIQUE,
+    "title" TEXT NOT NULL,
+    "sku" TEXT NOT NULL UNIQUE,
+    "priceCents" INTEGER NOT NULL,
+    "compareAtCents" INTEGER,
+    "stockQuantity" INTEGER NOT NULL DEFAULT 0,
+    "reservedQuantity" INTEGER NOT NULL DEFAULT 0,
+    "active" BOOLEAN NOT NULL DEFAULT 1,
+    "createdAt" DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    "updatedAt" DATETIME NOT NULL,
+    FOREIGN KEY ("productId") REFERENCES "Product" ("id") ON DELETE CASCADE ON UPDATE CASCADE
+  );`,
+  `CREATE TABLE IF NOT EXISTS "Coupon" (
+    "id" TEXT NOT NULL PRIMARY KEY,
+    "code" TEXT NOT NULL UNIQUE,
+    "description" TEXT,
+    "discountType" TEXT NOT NULL,
+    "discountValue" INTEGER NOT NULL,
+    "minSubtotalCents" INTEGER,
+    "active" BOOLEAN NOT NULL DEFAULT 1,
+    "startsAt" DATETIME,
+    "endsAt" DATETIME,
+    "usageLimit" INTEGER,
+    "usageCount" INTEGER NOT NULL DEFAULT 0,
+    "createdAt" DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    "updatedAt" DATETIME NOT NULL
+  );`,
+  `CREATE TABLE IF NOT EXISTS "Cart" (
+    "id" TEXT NOT NULL PRIMARY KEY,
+    "cartKey" TEXT NOT NULL UNIQUE,
+    "customerId" TEXT,
+    "couponId" TEXT,
+    "status" TEXT NOT NULL,
+    "subtotalCents" INTEGER NOT NULL,
+    "discountCents" INTEGER NOT NULL,
+    "totalCents" INTEGER NOT NULL,
+    "createdAt" DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    "updatedAt" DATETIME NOT NULL,
+    FOREIGN KEY ("customerId") REFERENCES "Customer" ("id") ON DELETE SET NULL ON UPDATE CASCADE,
+    FOREIGN KEY ("couponId") REFERENCES "Coupon" ("id") ON DELETE SET NULL ON UPDATE CASCADE
+  );`,
+  `CREATE TABLE IF NOT EXISTS "CartItem" (
+    "id" TEXT NOT NULL PRIMARY KEY,
+    "cartId" TEXT NOT NULL,
+    "productId" TEXT NOT NULL,
+    "variantId" TEXT NOT NULL,
+    "quantity" INTEGER NOT NULL,
+    "unitPriceCents" INTEGER NOT NULL,
+    "lineTotalCents" INTEGER NOT NULL,
+    "createdAt" DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    "updatedAt" DATETIME NOT NULL,
+    FOREIGN KEY ("cartId") REFERENCES "Cart" ("id") ON DELETE CASCADE ON UPDATE CASCADE,
+    FOREIGN KEY ("productId") REFERENCES "Product" ("id") ON DELETE RESTRICT ON UPDATE CASCADE,
+    FOREIGN KEY ("variantId") REFERENCES "ProductVariant" ("id") ON DELETE RESTRICT ON UPDATE CASCADE
+  );`,
+  `CREATE TABLE IF NOT EXISTS "Order" (
+    "id" TEXT NOT NULL PRIMARY KEY,
+    "orderNumber" TEXT NOT NULL UNIQUE,
+    "cartId" TEXT,
+    "customerId" TEXT,
+    "couponId" TEXT,
+    "customerName" TEXT NOT NULL,
+    "customerPhone" TEXT NOT NULL,
+    "customerEmail" TEXT,
+    "notes" TEXT,
+    "status" TEXT NOT NULL,
+    "paymentStatus" TEXT NOT NULL,
+    "fulfillmentStatus" TEXT NOT NULL,
+    "inventoryState" TEXT NOT NULL,
+    "subtotalCents" INTEGER NOT NULL,
+    "discountCents" INTEGER NOT NULL,
+    "shippingCents" INTEGER NOT NULL,
+    "totalCents" INTEGER NOT NULL,
+    "createdAt" DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    "updatedAt" DATETIME NOT NULL,
+    FOREIGN KEY ("cartId") REFERENCES "Cart" ("id") ON DELETE SET NULL ON UPDATE CASCADE,
+    FOREIGN KEY ("customerId") REFERENCES "Customer" ("id") ON DELETE SET NULL ON UPDATE CASCADE,
+    FOREIGN KEY ("couponId") REFERENCES "Coupon" ("id") ON DELETE SET NULL ON UPDATE CASCADE
+  );`,
+  `CREATE TABLE IF NOT EXISTS "OrderTimeline" (
+    "id" TEXT NOT NULL PRIMARY KEY,
+    "orderId" TEXT NOT NULL,
+    "label" TEXT NOT NULL,
+    "description" TEXT NOT NULL,
+    "createdAt" DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    FOREIGN KEY ("orderId") REFERENCES "Order" ("id") ON DELETE CASCADE ON UPDATE CASCADE
+  );`,
+  `CREATE TABLE IF NOT EXISTS "OrderItem" (
+    "id" TEXT NOT NULL PRIMARY KEY,
+    "orderId" TEXT NOT NULL,
+    "productId" TEXT NOT NULL,
+    "variantId" TEXT NOT NULL,
+    "quantity" INTEGER NOT NULL,
+    "productName" TEXT NOT NULL,
+    "variantName" TEXT NOT NULL,
+    "sku" TEXT NOT NULL,
+    "unitPriceCents" INTEGER NOT NULL,
+    "lineTotalCents" INTEGER NOT NULL,
+    "createdAt" DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    FOREIGN KEY ("orderId") REFERENCES "Order" ("id") ON DELETE CASCADE ON UPDATE CASCADE,
+    FOREIGN KEY ("productId") REFERENCES "Product" ("id") ON DELETE RESTRICT ON UPDATE CASCADE,
+    FOREIGN KEY ("variantId") REFERENCES "ProductVariant" ("id") ON DELETE RESTRICT ON UPDATE CASCADE
+  );`,
+  `CREATE TABLE IF NOT EXISTS "InventoryMovement" (
+    "id" TEXT NOT NULL PRIMARY KEY,
+    "productId" TEXT NOT NULL,
+    "variantId" TEXT NOT NULL,
+    "movementType" TEXT NOT NULL,
+    "quantity" INTEGER NOT NULL,
+    "reason" TEXT NOT NULL,
+    "referenceType" TEXT NOT NULL,
+    "referenceId" TEXT NOT NULL,
+    "createdAt" DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    FOREIGN KEY ("productId") REFERENCES "Product" ("id") ON DELETE RESTRICT ON UPDATE CASCADE,
+    FOREIGN KEY ("variantId") REFERENCES "ProductVariant" ("id") ON DELETE RESTRICT ON UPDATE CASCADE
+  );`,
+  `CREATE TABLE IF NOT EXISTS "Payment" (
+    "id" TEXT NOT NULL PRIMARY KEY,
+    "appointmentId" TEXT,
+    "orderId" TEXT,
+    "provider" TEXT NOT NULL,
+    "providerPaymentId" TEXT,
+    "providerCheckoutId" TEXT,
+    "referenceType" TEXT NOT NULL,
+    "referenceId" TEXT NOT NULL,
+    "purpose" TEXT NOT NULL,
+    "method" TEXT NOT NULL,
+    "status" TEXT NOT NULL,
+    "providerStatus" TEXT,
+    "amountCents" INTEGER NOT NULL,
+    "currency" TEXT NOT NULL,
+    "idempotencyKey" TEXT NOT NULL UNIQUE,
+    "checkoutUrl" TEXT,
+    "rawPayload" TEXT,
+    "expiresAt" DATETIME,
+    "paidAt" DATETIME,
+    "createdAt" DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    "updatedAt" DATETIME NOT NULL,
+    FOREIGN KEY ("appointmentId") REFERENCES "Appointment" ("id") ON DELETE SET NULL ON UPDATE CASCADE,
+    FOREIGN KEY ("orderId") REFERENCES "Order" ("id") ON DELETE SET NULL ON UPDATE CASCADE
+  );`,
+  `CREATE TABLE IF NOT EXISTS "IntegrationLog" (
+    "id" TEXT NOT NULL PRIMARY KEY,
+    "paymentId" TEXT,
+    "provider" TEXT NOT NULL,
+    "eventType" TEXT NOT NULL,
+    "eventId" TEXT,
+    "direction" TEXT NOT NULL,
+    "status" TEXT NOT NULL,
+    "referenceType" TEXT,
+    "referenceId" TEXT,
+    "idempotencyKey" TEXT,
+    "payload" TEXT NOT NULL,
+    "responsePayload" TEXT,
+    "headers" TEXT,
+    "createdAt" DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    "processedAt" DATETIME,
+    FOREIGN KEY ("paymentId") REFERENCES "Payment" ("id") ON DELETE SET NULL ON UPDATE CASCADE
+  );`
+];
+
+const indexStatements = [
+  `CREATE INDEX IF NOT EXISTS "Appointment_serviceId_scheduledStartAt_idx" ON "Appointment"("serviceId", "scheduledStartAt");`,
+  `CREATE INDEX IF NOT EXISTS "Appointment_status_scheduledStartAt_idx" ON "Appointment"("status", "scheduledStartAt");`,
+  `CREATE INDEX IF NOT EXISTS "Appointment_paymentStatus_idx" ON "Appointment"("paymentStatus");`,
+  `CREATE INDEX IF NOT EXISTS "AppointmentHold_status_expiresAt_idx" ON "AppointmentHold"("status", "expiresAt");`,
+  `CREATE INDEX IF NOT EXISTS "AppointmentHold_serviceId_scheduledStartAt_status_idx" ON "AppointmentHold"("serviceId", "scheduledStartAt", "status");`,
+  `CREATE INDEX IF NOT EXISTS "AppointmentHold_slotReference_status_idx" ON "AppointmentHold"("slotReference", "status");`,
+  `CREATE INDEX IF NOT EXISTS "AppointmentTimeline_appointmentId_createdAt_idx" ON "AppointmentTimeline"("appointmentId", "createdAt");`,
+  `CREATE INDEX IF NOT EXISTS "AvailabilityRule_serviceId_weekday_active_idx" ON "AvailabilityRule"("serviceId", "weekday", "active");`,
+  `CREATE INDEX IF NOT EXISTS "CalendarBlock_serviceId_startsAt_endsAt_idx" ON "CalendarBlock"("serviceId", "startsAt", "endsAt");`,
+  `CREATE INDEX IF NOT EXISTS "Category_parentId_active_idx" ON "Category"("parentId", "active");`,
+  `CREATE INDEX IF NOT EXISTS "Category_displayOrder_active_idx" ON "Category"("displayOrder", "active");`,
+  `CREATE INDEX IF NOT EXISTS "Product_categoryId_active_idx" ON "Product"("categoryId", "active");`,
+  `CREATE INDEX IF NOT EXISTS "Product_status_featured_idx" ON "Product"("status", "featured");`,
+  `CREATE INDEX IF NOT EXISTS "ProductVariant_productId_active_idx" ON "ProductVariant"("productId", "active");`,
+  `CREATE INDEX IF NOT EXISTS "ProductVariant_stockQuantity_reservedQuantity_idx" ON "ProductVariant"("stockQuantity", "reservedQuantity");`,
+  `CREATE INDEX IF NOT EXISTS "Coupon_active_startsAt_endsAt_idx" ON "Coupon"("active", "startsAt", "endsAt");`,
+  `CREATE INDEX IF NOT EXISTS "Cart_customerId_status_idx" ON "Cart"("customerId", "status");`,
+  `CREATE INDEX IF NOT EXISTS "Cart_couponId_idx" ON "Cart"("couponId");`,
+  `CREATE UNIQUE INDEX IF NOT EXISTS "CartItem_cartId_variantId_key" ON "CartItem"("cartId", "variantId");`,
+  `CREATE INDEX IF NOT EXISTS "CartItem_productId_idx" ON "CartItem"("productId");`,
+  `CREATE INDEX IF NOT EXISTS "Order_cartId_idx" ON "Order"("cartId");`,
+  `CREATE INDEX IF NOT EXISTS "Order_customerId_createdAt_idx" ON "Order"("customerId", "createdAt");`,
+  `CREATE INDEX IF NOT EXISTS "Order_status_createdAt_idx" ON "Order"("status", "createdAt");`,
+  `CREATE INDEX IF NOT EXISTS "Order_paymentStatus_createdAt_idx" ON "Order"("paymentStatus", "createdAt");`,
+  `CREATE INDEX IF NOT EXISTS "Order_fulfillmentStatus_createdAt_idx" ON "Order"("fulfillmentStatus", "createdAt");`,
+  `CREATE INDEX IF NOT EXISTS "OrderTimeline_orderId_createdAt_idx" ON "OrderTimeline"("orderId", "createdAt");`,
+  `CREATE INDEX IF NOT EXISTS "OrderItem_orderId_idx" ON "OrderItem"("orderId");`,
+  `CREATE INDEX IF NOT EXISTS "OrderItem_productId_idx" ON "OrderItem"("productId");`,
+  `CREATE INDEX IF NOT EXISTS "OrderItem_variantId_idx" ON "OrderItem"("variantId");`,
+  `CREATE INDEX IF NOT EXISTS "InventoryMovement_variantId_createdAt_idx" ON "InventoryMovement"("variantId", "createdAt");`,
+  `CREATE INDEX IF NOT EXISTS "InventoryMovement_referenceType_referenceId_createdAt_idx" ON "InventoryMovement"("referenceType", "referenceId", "createdAt");`,
+  `CREATE INDEX IF NOT EXISTS "InventoryMovement_movementType_createdAt_idx" ON "InventoryMovement"("movementType", "createdAt");`,
+  `CREATE UNIQUE INDEX IF NOT EXISTS "Payment_providerPaymentId_key" ON "Payment"("providerPaymentId");`,
+  `CREATE INDEX IF NOT EXISTS "Payment_appointmentId_createdAt_idx" ON "Payment"("appointmentId", "createdAt");`,
+  `CREATE INDEX IF NOT EXISTS "Payment_orderId_createdAt_idx" ON "Payment"("orderId", "createdAt");`,
+  `CREATE INDEX IF NOT EXISTS "Payment_referenceType_referenceId_createdAt_idx" ON "Payment"("referenceType", "referenceId", "createdAt");`,
+  `CREATE INDEX IF NOT EXISTS "Payment_status_createdAt_idx" ON "Payment"("status", "createdAt");`,
+  `CREATE INDEX IF NOT EXISTS "Payment_purpose_createdAt_idx" ON "Payment"("purpose", "createdAt");`,
+  `CREATE INDEX IF NOT EXISTS "IntegrationLog_paymentId_createdAt_idx" ON "IntegrationLog"("paymentId", "createdAt");`,
+  `CREATE INDEX IF NOT EXISTS "IntegrationLog_provider_eventType_createdAt_idx" ON "IntegrationLog"("provider", "eventType", "createdAt");`,
+  `CREATE INDEX IF NOT EXISTS "IntegrationLog_eventId_provider_idx" ON "IntegrationLog"("eventId", "provider");`
+];
+
+function addColumnIfMissing(sqlite: Database.Database, table: string, column: string, definition: string) {
+  const rows = sqlite.prepare(`PRAGMA table_info("${table}")`).all() as Array<{ name: string }>;
+  if (!rows.some((row) => row.name === column)) {
+    sqlite.exec(`ALTER TABLE "${table}" ADD COLUMN "${column}" ${definition};`);
+  }
+}
+
+export async function ensureSqliteDatabaseSchema() {
+  if (global.__laikaoDbBootstrapped) {
+    return;
+  }
+
+  const databasePath = resolveSqliteDatabasePath();
+  fs.mkdirSync(path.dirname(databasePath), { recursive: true });
+
+  const sqlite = new Database(databasePath);
+
+  try {
+    sqlite.exec("BEGIN");
+    for (const statement of tableStatements) {
+      sqlite.exec(statement);
+    }
+    addColumnIfMissing(sqlite, "Payment", "orderId", "TEXT");
+    for (const statement of indexStatements) {
+      sqlite.exec(statement);
+    }
+    sqlite.exec("COMMIT");
+    global.__laikaoDbBootstrapped = true;
+  } catch (error) {
+    sqlite.exec("ROLLBACK");
+    throw error;
+  } finally {
+    sqlite.close();
+  }
+}

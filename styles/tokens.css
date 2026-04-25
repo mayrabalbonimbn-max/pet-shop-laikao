@@ -1,0 +1,57 @@
+:root {
+  --font-heading: "Sora", "Manrope", system-ui, sans-serif;
+  --font-body: "Manrope", system-ui, sans-serif;
+  --font-mono: "JetBrains Mono", ui-monospace, monospace;
+
+  --brand-50: #fbf7ff;
+  --brand-100: #f2e9ff;
+  --brand-200: #dfcbff;
+  --brand-300: #c79eff;
+  --brand-400: #a96aff;
+  --brand-500: #8d39f4;
+  --brand-600: #7427d1;
+  --brand-700: #5d1da6;
+  --brand-800: #49167d;
+  --brand-900: #341255;
+  --brand-950: #201033;
+
+  --sand-50: #fffdfb;
+  --sand-100: #faf4ee;
+  --sand-200: #e4d8cb;
+  --stone-100: #ede9e4;
+  --stone-300: #b7aca1;
+  --stone-500: #756c64;
+  --ink-700: #2f2a35;
+  --ink-900: #16131b;
+  --teal-500: #1c8f85;
+  --amber-500: #d48a1d;
+  --rose-500: #c54552;
+  --success-500: #23845d;
+  --warning-500: #d48a1d;
+  --error-500: #c54552;
+  --info-500: #2b7dbb;
+  --partial-500: #c48b1d;
+  --low-stock-500: #cc6a22;
+  --blocked-500: #6d6780;
+
+  --radius-sm: 10px;
+  --radius-md: 14px;
+  --radius-lg: 18px;
+  --radius-xl: 24px;
+
+  --shadow-soft: 0 10px 30px rgba(32, 16, 51, 0.08);
+  --shadow-elevated: 0 18px 50px rgba(32, 16, 51, 0.14);
+  --shadow-focus: 0 0 0 4px rgba(141, 57, 244, 0.18);
+
+  --space-1: 4px;
+  --space-2: 8px;
+  --space-3: 12px;
+  --space-4: 16px;
+  --space-5: 20px;
+  --space-6: 24px;
+  --space-8: 32px;
+  --space-10: 40px;
+  --space-12: 48px;
+  --space-16: 64px;
+  --space-20: 80px;
+}

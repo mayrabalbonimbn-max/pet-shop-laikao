@@ -1,0 +1,404 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "sqlite"
+  url      = env("DATABASE_URL")
+}
+
+model AppointmentService {
+  id              String             @id
+  slug            String             @unique
+  name            String
+  description     String
+  durationMinutes Int
+  priceCents      Int
+  active          Boolean            @default(true)
+  appointments    Appointment[]
+  holds           AppointmentHold[]
+  availability    AvailabilityRule[]
+  calendarBlocks  CalendarBlock[]
+  createdAt       DateTime           @default(now())
+  updatedAt       DateTime           @updatedAt
+}
+
+model Customer {
+  id           String            @id
+  fullName     String
+  phone        String            @unique
+  email        String?
+  pets         Pet[]
+  appointments Appointment[]
+  holds        AppointmentHold[]
+  carts        Cart[]
+  orders       Order[]
+  createdAt    DateTime          @default(now())
+  updatedAt    DateTime          @updatedAt
+}
+
+model Pet {
+  id           String            @id
+  customerId   String
+  name         String
+  species      String
+  breed        String?
+  size         String
+  customer     Customer          @relation(fields: [customerId], references: [id], onDelete: Cascade)
+  appointments Appointment[]
+  holds        AppointmentHold[]
+  createdAt    DateTime          @default(now())
+  updatedAt    DateTime          @updatedAt
+}
+
+model Appointment {
+  id                String                 @id
+  serviceId         String
+  customerId        String
+  petId             String
+  scheduledStartAt  DateTime
+  scheduledEndAt    DateTime
+  status            String
+  paymentStatus     String
+  paymentOption     String
+  paymentMethod     String
+  amountDueCents    Int
+  amountPaidCents   Int
+  amountBalanceCents Int
+  createdAt         DateTime               @default(now())
+  updatedAt         DateTime               @updatedAt
+  service           AppointmentService     @relation(fields: [serviceId], references: [id])
+  customer          Customer               @relation(fields: [customerId], references: [id])
+  pet               Pet                    @relation(fields: [petId], references: [id])
+  timeline          AppointmentTimeline[]
+  holds             AppointmentHold[]
+  payments          Payment[]
+
+  @@index([serviceId, scheduledStartAt])
+  @@index([status, scheduledStartAt])
+  @@index([paymentStatus])
+}
+
+model AppointmentHold {
+  id               String             @id
+  appointmentId    String
+  serviceId        String
+  customerId       String?
+  petId            String?
+  slotReference    String
+  scheduledStartAt DateTime
+  scheduledEndAt   DateTime
+  status           String
+  createdAt        DateTime           @default(now())
+  expiresAt        DateTime
+  releasedAt       DateTime?
+  appointment      Appointment        @relation(fields: [appointmentId], references: [id], onDelete: Cascade)
+  service          AppointmentService @relation(fields: [serviceId], references: [id])
+  customer         Customer?          @relation(fields: [customerId], references: [id])
+  pet              Pet?               @relation(fields: [petId], references: [id])
+
+  @@index([status, expiresAt])
+  @@index([serviceId, scheduledStartAt, status])
+  @@index([slotReference, status])
+}
+
+model AppointmentTimeline {
+  id            String      @id
+  appointmentId String
+  label         String
+  description   String
+  createdAt     DateTime    @default(now())
+  appointment   Appointment @relation(fields: [appointmentId], references: [id], onDelete: Cascade)
+
+  @@index([appointmentId, createdAt])
+}
+
+model AvailabilityRule {
+  id                  String             @id
+  serviceId           String?
+  weekday             Int
+  startsAt            String
+  endsAt              String
+  slotIntervalMinutes Int
+  capacity            Int
+  active              Boolean            @default(true)
+  service             AppointmentService? @relation(fields: [serviceId], references: [id])
+  createdAt           DateTime           @default(now())
+  updatedAt           DateTime           @updatedAt
+
+  @@index([serviceId, weekday, active])
+}
+
+model CalendarBlock {
+  id         String             @id
+  serviceId  String?
+  startsAt   DateTime
+  endsAt     DateTime
+  reason     String
+  service    AppointmentService? @relation(fields: [serviceId], references: [id])
+  createdAt  DateTime           @default(now())
+  updatedAt  DateTime           @updatedAt
+
+  @@index([serviceId, startsAt, endsAt])
+}
+
+model Payment {
+  id                String           @id
+  appointmentId     String?
+  orderId           String?
+  provider          String
+  providerPaymentId String?          @unique
+  providerCheckoutId String?
+  referenceType     String
+  referenceId       String
+  purpose           String
+  method            String
+  status            String
+  providerStatus    String?
+  amountCents       Int
+  currency          String
+  idempotencyKey    String           @unique
+  checkoutUrl       String?
+  rawPayload        String?
+  expiresAt         DateTime?
+  paidAt            DateTime?
+  createdAt         DateTime         @default(now())
+  updatedAt         DateTime         @updatedAt
+  appointment       Appointment?     @relation(fields: [appointmentId], references: [id], onDelete: SetNull)
+  order             Order?           @relation(fields: [orderId], references: [id], onDelete: SetNull)
+  integrationLogs   IntegrationLog[]
+
+  @@index([appointmentId, createdAt])
+  @@index([orderId, createdAt])
+  @@index([referenceType, referenceId, createdAt])
+  @@index([status, createdAt])
+  @@index([purpose, createdAt])
+}
+
+model IntegrationLog {
+  id              String    @id
+  paymentId       String?
+  provider        String
+  eventType       String
+  eventId         String?
+  direction       String
+  status          String
+  referenceType   String?
+  referenceId     String?
+  idempotencyKey  String?
+  payload         String
+  responsePayload String?
+  headers         String?
+  createdAt       DateTime  @default(now())
+  processedAt     DateTime?
+  payment         Payment?  @relation(fields: [paymentId], references: [id], onDelete: SetNull)
+
+  @@index([paymentId, createdAt])
+  @@index([provider, eventType, createdAt])
+  @@index([eventId, provider])
+}
+
+model Category {
+  id           String      @id
+  name         String
+  slug         String      @unique
+  description  String?
+  parentId     String?
+  active       Boolean     @default(true)
+  displayOrder Int         @default(0)
+  parent       Category?   @relation("CategoryTree", fields: [parentId], references: [id], onDelete: SetNull)
+  children     Category[]  @relation("CategoryTree")
+  products     Product[]
+  createdAt    DateTime    @default(now())
+  updatedAt    DateTime    @updatedAt
+
+  @@index([parentId, active])
+  @@index([displayOrder, active])
+}
+
+model Product {
+  id              String              @id
+  categoryId      String?
+  slug            String              @unique
+  name            String
+  description     String
+  status          String
+  featured        Boolean             @default(false)
+  imageLabel      String
+  mainImageUrl    String?
+  active          Boolean             @default(true)
+  category        Category?           @relation(fields: [categoryId], references: [id], onDelete: SetNull)
+  variants        ProductVariant[]
+  cartItems       CartItem[]
+  orderItems      OrderItem[]
+  inventoryMoves  InventoryMovement[]
+  createdAt       DateTime            @default(now())
+  updatedAt       DateTime            @updatedAt
+
+  @@index([categoryId, active])
+  @@index([status, featured])
+}
+
+model ProductVariant {
+  id                String              @id
+  productId         String
+  slug              String              @unique
+  title             String
+  sku               String              @unique
+  priceCents        Int
+  compareAtCents    Int?
+  stockQuantity     Int                 @default(0)
+  reservedQuantity  Int                 @default(0)
+  active            Boolean             @default(true)
+  product           Product             @relation(fields: [productId], references: [id], onDelete: Cascade)
+  cartItems         CartItem[]
+  orderItems        OrderItem[]
+  inventoryMoves    InventoryMovement[]
+  createdAt         DateTime            @default(now())
+  updatedAt         DateTime            @updatedAt
+
+  @@index([productId, active])
+  @@index([stockQuantity, reservedQuantity])
+}
+
+model Coupon {
+  id               String      @id
+  code             String      @unique
+  description      String?
+  discountType     String
+  discountValue    Int
+  minSubtotalCents Int?
+  active           Boolean     @default(true)
+  startsAt         DateTime?
+  endsAt           DateTime?
+  usageLimit       Int?
+  usageCount       Int         @default(0)
+  carts            Cart[]
+  orders           Order[]
+  createdAt        DateTime    @default(now())
+  updatedAt        DateTime    @updatedAt
+
+  @@index([active, startsAt, endsAt])
+}
+
+model Cart {
+  id             String      @id
+  cartKey        String      @unique
+  customerId     String?
+  couponId       String?
+  status         String
+  subtotalCents  Int
+  discountCents  Int
+  totalCents     Int
+  customer       Customer?   @relation(fields: [customerId], references: [id], onDelete: SetNull)
+  coupon         Coupon?     @relation(fields: [couponId], references: [id], onDelete: SetNull)
+  items          CartItem[]
+  orders         Order[]
+  createdAt      DateTime    @default(now())
+  updatedAt      DateTime    @updatedAt
+
+  @@index([customerId, status])
+  @@index([couponId])
+}
+
+model CartItem {
+  id             String         @id
+  cartId         String
+  productId      String
+  variantId      String
+  quantity       Int
+  unitPriceCents Int
+  lineTotalCents Int
+  cart           Cart           @relation(fields: [cartId], references: [id], onDelete: Cascade)
+  product        Product        @relation(fields: [productId], references: [id], onDelete: Restrict)
+  variant        ProductVariant @relation(fields: [variantId], references: [id], onDelete: Restrict)
+  createdAt      DateTime       @default(now())
+  updatedAt      DateTime       @updatedAt
+
+  @@unique([cartId, variantId])
+  @@index([productId])
+}
+
+model Order {
+  id                String       @id
+  orderNumber       String       @unique
+  cartId            String?
+  customerId        String?
+  couponId          String?
+  customerName      String
+  customerPhone     String
+  customerEmail     String?
+  notes             String?
+  status            String
+  paymentStatus     String
+  fulfillmentStatus String
+  inventoryState    String
+  subtotalCents     Int
+  discountCents     Int
+  shippingCents     Int
+  totalCents        Int
+  cart              Cart?        @relation(fields: [cartId], references: [id], onDelete: SetNull)
+  customer          Customer?    @relation(fields: [customerId], references: [id], onDelete: SetNull)
+  coupon            Coupon?      @relation(fields: [couponId], references: [id], onDelete: SetNull)
+  items             OrderItem[]
+  payments          Payment[]
+  timeline          OrderTimeline[]
+  createdAt         DateTime     @default(now())
+  updatedAt         DateTime     @updatedAt
+
+  @@index([cartId])
+  @@index([customerId, createdAt])
+  @@index([status, createdAt])
+  @@index([paymentStatus, createdAt])
+  @@index([fulfillmentStatus, createdAt])
+}
+
+model OrderTimeline {
+  id          String   @id
+  orderId     String
+  label       String
+  description String
+  createdAt   DateTime @default(now())
+  order       Order    @relation(fields: [orderId], references: [id], onDelete: Cascade)
+
+  @@index([orderId, createdAt])
+}
+
+model OrderItem {
+  id                String         @id
+  orderId           String
+  productId         String
+  variantId         String
+  quantity          Int
+  productName       String
+  variantName       String
+  sku               String
+  unitPriceCents    Int
+  lineTotalCents    Int
+  order             Order          @relation(fields: [orderId], references: [id], onDelete: Cascade)
+  product           Product        @relation(fields: [productId], references: [id], onDelete: Restrict)
+  variant           ProductVariant @relation(fields: [variantId], references: [id], onDelete: Restrict)
+  createdAt         DateTime       @default(now())
+
+  @@index([orderId])
+  @@index([productId])
+  @@index([variantId])
+}
+
+model InventoryMovement {
+  id            String         @id
+  productId     String
+  variantId     String
+  movementType  String
+  quantity      Int
+  reason        String
+  referenceType String
+  referenceId   String
+  product       Product        @relation(fields: [productId], references: [id], onDelete: Restrict)
+  variant       ProductVariant @relation(fields: [variantId], references: [id], onDelete: Restrict)
+  createdAt     DateTime       @default(now())
+
+  @@index([variantId, createdAt])
+  @@index([referenceType, referenceId, createdAt])
+  @@index([movementType, createdAt])
+}

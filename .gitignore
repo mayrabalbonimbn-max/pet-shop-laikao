@@ -1,0 +1,41 @@
+.next
+node_modules
+dist
+coverage
+.DS_Store
+*.log
+.env
+.env.local
+.env.*.local
+playwright-report
+test-results
+
+# build / cache
+out
+.cache
+.tmp
+temp
+
+# local database / prisma
+prisma/dev.db
+prisma/dev.db-journal
+*.sqlite
+*.sqlite-journal
+
+# vercel / deployment leftovers
+.vercel
+
+# pm2 logs
+pids
+*.pid
+*.pid.lock
+
+# OS / editor
+Thumbs.db
+.vscode/*
+!.vscode/extensions.json
+!.vscode/settings.json
+.idea
+
+# local tunnel / misc
+.localtunnel
