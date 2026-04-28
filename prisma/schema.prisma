@@ -19,6 +19,7 @@ model AppointmentService {
   holds           AppointmentHold[]
   availability    AvailabilityRule[]
   calendarBlocks  CalendarBlock[]
+  promotionItems  PromotionItem[]
   createdAt       DateTime           @default(now())
   updatedAt       DateTime           @updatedAt
 }
@@ -232,6 +233,7 @@ model Product {
   cartItems       CartItem[]
   orderItems      OrderItem[]
   inventoryMoves  InventoryMovement[]
+  promotionItems  PromotionItem[]
   createdAt       DateTime            @default(now())
   updatedAt       DateTime            @updatedAt
 
@@ -401,4 +403,103 @@ model InventoryMovement {
   @@index([variantId, createdAt])
   @@index([referenceType, referenceId, createdAt])
   @@index([movementType, createdAt])
+}
+
+model AdminUser {
+  id                 String   @id
+  name               String
+  email              String   @unique
+  role               String
+  passwordHash       String
+  passwordSalt       String
+  active             Boolean  @default(true)
+  lastLoginAt        DateTime?
+  failedLoginCount   Int      @default(0)
+  lockedUntil        DateTime?
+  createdAt          DateTime @default(now())
+  updatedAt          DateTime @updatedAt
+  sessions           AdminSession[]
+}
+
+model AdminSession {
+  id             String    @id
+  userId         String
+  tokenHash      String    @unique
+  expiresAt      DateTime
+  revokedAt      DateTime?
+  ipAddress      String?
+  userAgent      String?
+  createdAt      DateTime  @default(now())
+  updatedAt      DateTime  @updatedAt
+  user           AdminUser @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@index([userId, expiresAt])
+  @@index([expiresAt, revokedAt])
+}
+
+model Promotion {
+  id                 String            @id
+  slug               String            @unique
+  title              String
+  description        String?
+  type               String
+  status             String
+  startsAt           DateTime?
+  endsAt             DateTime?
+  priority           Int               @default(0)
+  highlightedOnHome  Boolean           @default(false)
+  ctaLabel           String?
+  ctaLink            String?
+  campaignTag        String?
+  active             Boolean           @default(true)
+  items              PromotionItem[]
+  banners            PromotionBanner[]
+  createdAt          DateTime          @default(now())
+  updatedAt          DateTime          @updatedAt
+
+  @@index([active, status, startsAt, endsAt])
+  @@index([highlightedOnHome, priority])
+}
+
+model PromotionItem {
+  id                   String              @id
+  promotionId          String
+  productId            String?
+  serviceId            String?
+  title                String?
+  description          String?
+  customPriceLabel     String?
+  displayOrder         Int                 @default(0)
+  active               Boolean             @default(true)
+  promotion            Promotion           @relation(fields: [promotionId], references: [id], onDelete: Cascade)
+  product              Product?            @relation(fields: [productId], references: [id], onDelete: SetNull)
+  service              AppointmentService? @relation(fields: [serviceId], references: [id], onDelete: SetNull)
+  createdAt            DateTime            @default(now())
+  updatedAt            DateTime            @updatedAt
+
+  @@index([promotionId, displayOrder, active])
+  @@index([productId])
+  @@index([serviceId])
+}
+
+model PromotionBanner {
+  id                 String     @id
+  promotionId        String
+  title              String
+  subtitle           String?
+  imageUrl           String?
+  mobileImageUrl     String?
+  ctaLabel           String?
+  ctaLink            String?
+  placement          String
+  displayOrder       Int        @default(0)
+  active             Boolean    @default(true)
+  startsAt           DateTime?
+  endsAt             DateTime?
+  promotion          Promotion  @relation(fields: [promotionId], references: [id], onDelete: Cascade)
+  createdAt          DateTime   @default(now())
+  updatedAt          DateTime   @updatedAt
+
+  @@index([promotionId, placement, displayOrder, active])
+  @@index([placement, active, startsAt, endsAt])
 }

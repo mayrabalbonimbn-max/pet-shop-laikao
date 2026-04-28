@@ -332,6 +332,84 @@ const tableStatements = [
     "createdAt" DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP,
     "processedAt" DATETIME,
     FOREIGN KEY ("paymentId") REFERENCES "Payment" ("id") ON DELETE SET NULL ON UPDATE CASCADE
+  );`,
+  `CREATE TABLE IF NOT EXISTS "AdminUser" (
+    "id" TEXT NOT NULL PRIMARY KEY,
+    "name" TEXT NOT NULL,
+    "email" TEXT NOT NULL UNIQUE,
+    "role" TEXT NOT NULL,
+    "passwordHash" TEXT NOT NULL,
+    "passwordSalt" TEXT NOT NULL,
+    "active" BOOLEAN NOT NULL DEFAULT 1,
+    "lastLoginAt" DATETIME,
+    "failedLoginCount" INTEGER NOT NULL DEFAULT 0,
+    "lockedUntil" DATETIME,
+    "createdAt" DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    "updatedAt" DATETIME NOT NULL
+  );`,
+  `CREATE TABLE IF NOT EXISTS "AdminSession" (
+    "id" TEXT NOT NULL PRIMARY KEY,
+    "userId" TEXT NOT NULL,
+    "tokenHash" TEXT NOT NULL UNIQUE,
+    "expiresAt" DATETIME NOT NULL,
+    "revokedAt" DATETIME,
+    "ipAddress" TEXT,
+    "userAgent" TEXT,
+    "createdAt" DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    "updatedAt" DATETIME NOT NULL,
+    FOREIGN KEY ("userId") REFERENCES "AdminUser" ("id") ON DELETE CASCADE ON UPDATE CASCADE
+  );`,
+  `CREATE TABLE IF NOT EXISTS "Promotion" (
+    "id" TEXT NOT NULL PRIMARY KEY,
+    "slug" TEXT NOT NULL UNIQUE,
+    "title" TEXT NOT NULL,
+    "description" TEXT,
+    "type" TEXT NOT NULL,
+    "status" TEXT NOT NULL,
+    "startsAt" DATETIME,
+    "endsAt" DATETIME,
+    "priority" INTEGER NOT NULL DEFAULT 0,
+    "highlightedOnHome" BOOLEAN NOT NULL DEFAULT 0,
+    "ctaLabel" TEXT,
+    "ctaLink" TEXT,
+    "campaignTag" TEXT,
+    "active" BOOLEAN NOT NULL DEFAULT 1,
+    "createdAt" DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    "updatedAt" DATETIME NOT NULL
+  );`,
+  `CREATE TABLE IF NOT EXISTS "PromotionItem" (
+    "id" TEXT NOT NULL PRIMARY KEY,
+    "promotionId" TEXT NOT NULL,
+    "productId" TEXT,
+    "serviceId" TEXT,
+    "title" TEXT,
+    "description" TEXT,
+    "customPriceLabel" TEXT,
+    "displayOrder" INTEGER NOT NULL DEFAULT 0,
+    "active" BOOLEAN NOT NULL DEFAULT 1,
+    "createdAt" DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    "updatedAt" DATETIME NOT NULL,
+    FOREIGN KEY ("promotionId") REFERENCES "Promotion" ("id") ON DELETE CASCADE ON UPDATE CASCADE,
+    FOREIGN KEY ("productId") REFERENCES "Product" ("id") ON DELETE SET NULL ON UPDATE CASCADE,
+    FOREIGN KEY ("serviceId") REFERENCES "AppointmentService" ("id") ON DELETE SET NULL ON UPDATE CASCADE
+  );`,
+  `CREATE TABLE IF NOT EXISTS "PromotionBanner" (
+    "id" TEXT NOT NULL PRIMARY KEY,
+    "promotionId" TEXT NOT NULL,
+    "title" TEXT NOT NULL,
+    "subtitle" TEXT,
+    "imageUrl" TEXT,
+    "mobileImageUrl" TEXT,
+    "ctaLabel" TEXT,
+    "ctaLink" TEXT,
+    "placement" TEXT NOT NULL,
+    "displayOrder" INTEGER NOT NULL DEFAULT 0,
+    "active" BOOLEAN NOT NULL DEFAULT 1,
+    "startsAt" DATETIME,
+    "endsAt" DATETIME,
+    "createdAt" DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    "updatedAt" DATETIME NOT NULL,
+    FOREIGN KEY ("promotionId") REFERENCES "Promotion" ("id") ON DELETE CASCADE ON UPDATE CASCADE
   );`
 ];
 
@@ -376,7 +454,16 @@ const indexStatements = [
   `CREATE INDEX IF NOT EXISTS "Payment_purpose_createdAt_idx" ON "Payment"("purpose", "createdAt");`,
   `CREATE INDEX IF NOT EXISTS "IntegrationLog_paymentId_createdAt_idx" ON "IntegrationLog"("paymentId", "createdAt");`,
   `CREATE INDEX IF NOT EXISTS "IntegrationLog_provider_eventType_createdAt_idx" ON "IntegrationLog"("provider", "eventType", "createdAt");`,
-  `CREATE INDEX IF NOT EXISTS "IntegrationLog_eventId_provider_idx" ON "IntegrationLog"("eventId", "provider");`
+  `CREATE INDEX IF NOT EXISTS "IntegrationLog_eventId_provider_idx" ON "IntegrationLog"("eventId", "provider");`,
+  `CREATE INDEX IF NOT EXISTS "AdminSession_userId_expiresAt_idx" ON "AdminSession"("userId", "expiresAt");`,
+  `CREATE INDEX IF NOT EXISTS "AdminSession_expiresAt_revokedAt_idx" ON "AdminSession"("expiresAt", "revokedAt");`,
+  `CREATE INDEX IF NOT EXISTS "Promotion_active_status_startsAt_endsAt_idx" ON "Promotion"("active", "status", "startsAt", "endsAt");`,
+  `CREATE INDEX IF NOT EXISTS "Promotion_highlightedOnHome_priority_idx" ON "Promotion"("highlightedOnHome", "priority");`,
+  `CREATE INDEX IF NOT EXISTS "PromotionItem_promotionId_displayOrder_active_idx" ON "PromotionItem"("promotionId", "displayOrder", "active");`,
+  `CREATE INDEX IF NOT EXISTS "PromotionItem_productId_idx" ON "PromotionItem"("productId");`,
+  `CREATE INDEX IF NOT EXISTS "PromotionItem_serviceId_idx" ON "PromotionItem"("serviceId");`,
+  `CREATE INDEX IF NOT EXISTS "PromotionBanner_promotionId_placement_displayOrder_active_idx" ON "PromotionBanner"("promotionId", "placement", "displayOrder", "active");`,
+  `CREATE INDEX IF NOT EXISTS "PromotionBanner_placement_active_startsAt_endsAt_idx" ON "PromotionBanner"("placement", "active", "startsAt", "endsAt");`
 ];
 
 function addColumnIfMissing(sqlite, table, column, definition) {

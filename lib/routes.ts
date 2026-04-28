@@ -3,6 +3,7 @@ export const publicRoutes = {
   services: "/servicos",
   schedule: "/agenda",
   products: "/produtos",
+  promotions: "/promocoes",
   contact: "/contato",
   cart: "/carrinho",
   checkout: "/checkout"
@@ -13,6 +14,7 @@ export const adminRoutes = {
   appointments: "/admin/agendamentos",
   orders: "/admin/pedidos",
   products: "/admin/produtos",
+  promotions: "/admin/promocoes",
   finance: "/admin/financeiro",
   notifications: "/admin/notificacoes"
 } as const;

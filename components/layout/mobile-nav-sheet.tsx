@@ -13,6 +13,7 @@ const items = [
   { label: "Servicos", href: publicRoutes.services },
   { label: "Agenda", href: publicRoutes.schedule },
   { label: "Produtos", href: publicRoutes.products },
+  { label: "Promocoes", href: publicRoutes.promotions },
   { label: "Contato", href: publicRoutes.contact },
   { label: "Carrinho", href: publicRoutes.cart }
 ];

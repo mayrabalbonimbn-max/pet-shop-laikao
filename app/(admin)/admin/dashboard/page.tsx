@@ -4,6 +4,7 @@ import { InlineNotice } from "@/components/feedback/inline-notice";
 import { dashboardMetrics } from "@/domains/admin/constants";
 import { listAdminAppointments } from "@/domains/appointments/queries";
 import { mockOrders } from "@/domains/orders/constants";
+import { listAdminPromotions } from "@/domains/promotions/queries";
 import { OperationalStatusPill } from "@/components/status/operational-status-pill";
 import { BalanceDueIndicator } from "@/components/status/balance-due-indicator";
 import { formatCurrency } from "@/lib/formatters";
@@ -12,6 +13,8 @@ export const dynamic = "force-dynamic";
 
 export default async function AdminDashboardPage() {
   const appointments = (await listAdminAppointments()).slice(0, 3);
+  const promotions = await listAdminPromotions();
+  const activePromotions = promotions.filter((promotion) => promotion.active).length;
 
   return (
     <div className="space-y-6">
@@ -24,6 +27,14 @@ export default async function AdminDashboardPage() {
         {dashboardMetrics.map((metric) => (
           <MetricCard key={metric.label} item={metric} />
         ))}
+        <MetricCard
+          item={{
+            label: "Promocoes ativas",
+            value: String(activePromotions),
+            helper: "Campanhas publicas ligadas ao admin.",
+            tone: "success"
+          }}
+        />
       </div>
 
       <div className="grid gap-4 xl:grid-cols-2">

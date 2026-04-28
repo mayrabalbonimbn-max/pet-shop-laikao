@@ -1,19 +1,20 @@
 export const adminNavigation = [
   {
-    title: "Visão Geral",
+    title: "Visao Geral",
     items: [{ label: "Dashboard", href: "/admin/dashboard" }]
   },
   {
-    title: "Operação",
+    title: "Operacao",
     items: [
       { label: "Agendamentos", href: "/admin/agendamentos" },
       { label: "Pedidos", href: "/admin/pedidos" },
+      { label: "Promocoes", href: "/admin/promocoes" },
       { label: "Financeiro", href: "/admin/financeiro" },
-      { label: "Notificações", href: "/admin/notificacoes" }
+      { label: "Notificacoes", href: "/admin/notificacoes" }
     ]
   },
   {
-    title: "Catálogo",
+    title: "Catalogo",
     items: [{ label: "Produtos", href: "/admin/produtos" }]
   }
 ] as const;

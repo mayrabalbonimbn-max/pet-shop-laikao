@@ -18,6 +18,7 @@ import { PracticalLinksGrid } from "@/components/marketing/practical-links-grid"
 import { TrustBlock } from "@/components/marketing/trust-block";
 import { Button } from "@/components/ui/button";
 import { listCatalogProducts } from "@/domains/catalog/queries";
+import { listHomeHighlightedPromotions } from "@/domains/promotions/queries";
 import { publicRoutes } from "@/lib/routes";
 
 const serviceHighlights = [
@@ -67,6 +68,7 @@ const commerceHighlights = [
 
 export default async function HomePage() {
   const featuredProducts = (await listCatalogProducts()).slice(0, 6);
+  const highlightedPromotions = await listHomeHighlightedPromotions();
 
   return (
     <div className="bg-transparent">
@@ -335,6 +337,36 @@ export default async function HomePage() {
           ))}
         </div>
       </section>
+
+      {highlightedPromotions.length > 0 ? (
+        <section className="content-container pb-14">
+          <div className="mb-6 flex flex-col gap-2 sm:flex-row sm:items-end sm:justify-between">
+            <div>
+              <p className="eyebrow">Promocoes ativas</p>
+              <h2 className="section-title">Campanhas reais controladas no admin com prioridade, validade e CTA.</h2>
+            </div>
+            <Link href={publicRoutes.promotions}>
+              <Button variant="secondary">Ver todas</Button>
+            </Link>
+          </div>
+          <div className="grid gap-4 md:grid-cols-2 xl:grid-cols-3">
+            {highlightedPromotions.map((promotion) => (
+              <article key={promotion.id} className="rounded-[28px] border border-brand-100 bg-white p-5 shadow-[var(--shadow-soft)]">
+                <p className="text-xs font-semibold uppercase tracking-[0.14em] text-brand-700">{promotion.type}</p>
+                <h3 className="mt-2 font-heading text-2xl font-semibold text-ink-900">{promotion.title}</h3>
+                <p className="mt-2 text-sm leading-6 text-stone-600">
+                  {promotion.description ?? "Campanha ativa com foco comercial e comunicacao clara no mobile."}
+                </p>
+                <div className="mt-5">
+                  <Link href={(promotion.ctaLink ?? publicRoutes.promotions) as "/promocoes"}>
+                    <Button variant="secondary">{promotion.ctaLabel ?? "Aproveitar"}</Button>
+                  </Link>
+                </div>
+              </article>
+            ))}
+          </div>
+        </section>
+      ) : null}
 
       <TrustBlock />
       <ContactBlock />
