@@ -1,16 +1,6 @@
 import Link from "next/link";
-import {
-  ArrowRight,
-  CalendarClock,
-  HeartHandshake,
-  Scissors,
-  ShieldCheck,
-  Sparkles,
-  TimerReset,
-  WashingMachine,
-} from "lucide-react";
+import { CalendarClock, Clock3, MessageCircle, Scissors, ShieldCheck, Sparkles, Star } from "lucide-react";
 
-import { InlineNotice } from "@/components/feedback/inline-notice";
 import { PracticalLinksGrid } from "@/components/marketing/practical-links-grid";
 import { Button } from "@/components/ui/button";
 import { publicRoutes } from "@/lib/routes";
@@ -19,198 +9,94 @@ const services = [
   {
     slug: "banho-e-tosa-premium",
     name: "Banho e tosa premium",
-    description: "Banho completo com acabamento caprichado, tosa alinhada e uma experiencia pensada para deixar o pet bonito e o tutor seguro com o atendimento.",
+    description: "Banho completo com acabamento caprichado e tosa alinhada para pets que precisam de visual impecavel.",
     price: "A partir de R$ 110",
     duration: "75 a 90 min",
     icon: Sparkles,
-    highlight: "Mais procurado da semana",
+    badge: "Mais pedido"
   },
   {
     slug: "banho-terapeutico",
     name: "Banho terapeutico",
-    description: "Fluxo com foco em pele, conforto e produtos adequados para quem precisa de mais cuidado e explicacao clara antes de agendar.",
+    description: "Fluxo com foco em pele sensivel, conforto e produtos adequados, com orientacao clara para o tutor.",
     price: "A partir de R$ 78",
     duration: "50 a 60 min",
     icon: ShieldCheck,
-    highlight: "Ideal para pets sensiveis",
+    badge: "Pele sensivel"
   },
   {
     slug: "tosa-higienica",
     name: "Tosa higienica",
-    description: "Servico de manutencao agil, pratico e muito solicitado para manter a rotina do pet em dia sem complicar a agenda do tutor.",
+    description: "Servico de manutencao pratica para rotina do pet, com execucao rapida e qualidade constante.",
     price: "A partir de R$ 65",
     duration: "35 a 45 min",
-    icon: CalendarClock,
-    highlight: "Agendamento rapido",
-  },
-];
-
-const sellingPoints = [
-  {
-    title: "Visual mais vendedor",
-    description: "Servico com mais personalidade, mais destaque comercial e CTA mais evidente.",
-  },
-  {
-    title: "Preco e duracao visiveis",
-    description: "O cliente entende rapido quanto custa e quanto tempo leva, sem cacar informacao.",
-  },
-  {
-    title: "Cara de pet shop forte",
-    description: "A linguagem da pagina fica mais proxima das artes promocionais da marca.",
-  },
+    icon: Scissors,
+    badge: "Express"
+  }
 ];
 
 export default function ServicesPage() {
   return (
     <div className="content-container py-10 sm:py-14">
-      <section className="grid gap-8 rounded-[32px] border border-brand-100 bg-linear-to-br from-brand-200 via-white to-[var(--magenta-100)] p-6 shadow-[var(--shadow-soft)] sm:p-8 xl:grid-cols-[1.1fr_0.9fr]">
-        <div className="space-y-5">
-          <div className="flex flex-wrap gap-2">
-            <span className="rounded-full bg-brand-100 px-3 py-1 text-[11px] font-semibold uppercase tracking-[0.16em] text-brand-700">
-              Estetica animal
-            </span>
-            <span className="rounded-full bg-[var(--sun-100)] px-3 py-1 text-[11px] font-semibold uppercase tracking-[0.16em] text-brand-900">
-              Banho, tosa e cuidado
-            </span>
+      <section className="rounded-[32px] border border-brand-100 bg-linear-to-br from-brand-100/70 via-white to-[#fff3fb] p-6 shadow-[var(--shadow-soft)] sm:p-8">
+        <div className="grid gap-6 xl:grid-cols-[1.12fr_0.88fr]">
+          <div className="space-y-4">
+            <div className="flex flex-wrap gap-2">
+              <span className="rounded-full bg-brand-100 px-3 py-1 text-[11px] font-semibold uppercase tracking-[0.16em] text-brand-700">Servicos</span>
+              <span className="rounded-full bg-[var(--sun-100)] px-3 py-1 text-[11px] font-semibold uppercase tracking-[0.16em] text-brand-900">Agenda online</span>
+            </div>
+            <h1 className="page-title">Servicos claros, comerciais e prontos para conversao no celular.</h1>
+            <p className="text-base leading-7 text-stone-600">
+              Valor, tempo medio e acao para agendar aparecem de forma objetiva. A pagina vende servico sem enrolacao e sem poluicao visual.
+            </p>
+            <div className="flex flex-col gap-3 sm:flex-row">
+              <Link href={publicRoutes.schedule} className="sm:min-w-[14rem]"><Button size="lg" fullWidth>Agendar agora</Button></Link>
+              <a href="https://wa.me/5511980512871" target="_blank" rel="noreferrer" className="sm:min-w-[14rem]"><Button variant="secondary" size="lg" fullWidth>Falar no WhatsApp</Button></a>
+            </div>
           </div>
-          <h1 className="page-title max-w-4xl">Banho, tosa, hidratacao, escovacao e manutencao com mais cara de pagina que vende servico.</h1>
-          <p className="max-w-3xl text-base leading-7 text-stone-500">
-            A pagina de servicos agora assume a energia comercial do Laikao sem ficar pesada: mais lilas, mais destaque e mais clareza para quem quer agendar no celular.
-          </p>
-          <div className="flex flex-col gap-3 sm:flex-row">
-            <Link href={publicRoutes.schedule} className="sm:min-w-[14rem]">
-              <Button size="lg" fullWidth>
-                Agendar agora
-              </Button>
-            </Link>
-            <a href="https://wa.me/5511980512871" target="_blank" rel="noreferrer" className="sm:min-w-[14rem]">
-              <Button variant="secondary" size="lg" fullWidth>
-                Falar no WhatsApp
-              </Button>
-            </a>
-          </div>
-        </div>
 
-        <div className="grid gap-3 md:grid-cols-3 xl:grid-cols-1">
-          {sellingPoints.map((point, index) => (
-            <article key={point.title} className="rounded-[var(--radius-lg)] border border-white/80 bg-white/92 p-5 shadow-[var(--shadow-soft)]">
-              <p className="text-sm font-semibold text-[var(--magenta-600)]">0{index + 1}</p>
-              <h2 className="mt-2 font-heading text-xl font-semibold text-ink-900">{point.title}</h2>
-              <p className="mt-2 text-sm leading-6 text-stone-500">{point.description}</p>
-            </article>
-          ))}
+          <div className="grid gap-3 sm:grid-cols-3 xl:grid-cols-1">
+            <article className="rounded-[22px] border border-white/80 bg-white/92 p-4 shadow-[var(--shadow-soft)]"><p className="text-sm font-semibold text-ink-900">Preco visivel</p><p className="mt-1 text-sm text-stone-600">Faixa de valor logo no card.</p></article>
+            <article className="rounded-[22px] border border-white/80 bg-white/92 p-4 shadow-[var(--shadow-soft)]"><p className="text-sm font-semibold text-ink-900">Duracao clara</p><p className="mt-1 text-sm text-stone-600">Tutor entende tempo medio antes de fechar.</p></article>
+            <article className="rounded-[22px] border border-white/80 bg-white/92 p-4 shadow-[var(--shadow-soft)]"><p className="text-sm font-semibold text-ink-900">CTA direto</p><p className="mt-1 text-sm text-stone-600">Agenda e WhatsApp sempre acessiveis.</p></article>
+          </div>
         </div>
       </section>
 
-      <section className="mt-8">
-        <InlineNotice
-          tone="info"
-          title="Agendamento online e atendimento humano trabalham juntos"
-          description="O cliente pode seguir sozinho pela agenda ou chamar no WhatsApp quando precisar de orientacao antes de fechar o horario."
-        />
-      </section>
-
-      <section className="mt-8 grid gap-4 lg:grid-cols-3">
+      <section className="mt-8 grid gap-4 md:grid-cols-2 xl:grid-cols-3">
         {services.map((service) => (
-          <article
-            key={service.slug}
-            className="surface-default flex h-full flex-col gap-5 border border-brand-100 bg-linear-to-br from-white via-brand-50/65 to-[var(--magenta-100)]/55 p-6 shadow-[var(--shadow-soft)] transition-all hover:-translate-y-1 hover:border-brand-300 hover:shadow-[var(--shadow-elevated)]"
-          >
-            <div className="flex items-start justify-between gap-4">
-              <div className="flex h-13 w-13 items-center justify-center rounded-[18px] bg-white text-brand-700 shadow-[var(--shadow-soft)]">
-                <service.icon className="h-5 w-5" />
-              </div>
-              <span className="rounded-full bg-[var(--sun-100)] px-2.5 py-1 text-[11px] font-semibold uppercase tracking-[0.16em] text-brand-900">
-                {service.highlight}
-              </span>
+          <article key={service.slug} className="surface-default flex h-full flex-col border border-brand-100 bg-white p-5 shadow-[var(--shadow-soft)]">
+            <div className="flex items-start justify-between gap-3">
+              <div className="flex h-12 w-12 items-center justify-center rounded-[16px] bg-brand-100 text-brand-700"><service.icon className="h-5 w-5" /></div>
+              <span className="rounded-full bg-[var(--sun-100)] px-2.5 py-1 text-[10px] font-semibold uppercase tracking-[0.14em] text-brand-900">{service.badge}</span>
+            </div>
+            <h2 className="mt-4 font-heading text-2xl font-semibold text-ink-900">{service.name}</h2>
+            <p className="mt-2 text-sm leading-6 text-stone-600">{service.description}</p>
+
+            <div className="mt-4 grid gap-2 rounded-[18px] border border-brand-100 bg-brand-50/55 p-3 text-sm">
+              <div className="flex items-center justify-between"><span className="text-stone-500">Preco</span><strong className="font-heading text-lg text-brand-700">{service.price}</strong></div>
+              <div className="flex items-center justify-between"><span className="inline-flex items-center gap-1.5 text-stone-500"><Clock3 className="h-4 w-4 text-brand-500" /> Duracao</span><strong className="text-ink-900">{service.duration}</strong></div>
             </div>
 
-            <div className="space-y-3">
-              <h2 className="font-heading text-2xl font-semibold text-ink-900">{service.name}</h2>
-              <p className="text-sm leading-6 text-stone-500">{service.description}</p>
-            </div>
-
-            <div className="grid gap-3 rounded-[var(--radius-lg)] border border-white/80 bg-white/90 p-4 text-sm">
-              <div className="flex items-center justify-between gap-3">
-                <span className="text-stone-500">Preco base</span>
-                <span className="font-heading text-xl font-semibold text-[var(--magenta-600)]">{service.price}</span>
-              </div>
-              <div className="flex items-center justify-between gap-3">
-                <span className="inline-flex items-center gap-2 text-stone-500">
-                  <TimerReset className="h-4 w-4 text-brand-500" />
-                  Duracao media
-                </span>
-                <span className="font-semibold text-ink-900">{service.duration}</span>
-              </div>
-            </div>
-
-            <div className="mt-auto flex flex-col gap-3 sm:flex-row">
-              <Link href={`/servicos/${service.slug}`} className="sm:flex-1">
-                <Button variant="secondary" fullWidth>
-                  Ver detalhes
-                </Button>
-              </Link>
-              <Link href={publicRoutes.schedule} className="sm:flex-1">
-                <Button fullWidth>Agendar</Button>
-              </Link>
+            <div className="mt-5 grid gap-2 sm:grid-cols-2">
+              <Link href={`/servicos/${service.slug}`}><Button variant="secondary" fullWidth>Ver detalhes</Button></Link>
+              <Link href={publicRoutes.schedule}><Button fullWidth>Agendar</Button></Link>
             </div>
           </article>
         ))}
       </section>
 
       <section className="mt-10 grid gap-4 xl:grid-cols-[1fr_1.1fr]">
-        <article className="surface-default border border-brand-100 bg-linear-to-br from-white via-brand-50/70 to-[var(--sun-100)]/70 p-6 shadow-[var(--shadow-soft)]">
-          <p className="eyebrow">Confianca e praticidade</p>
-          <h2 className="mt-3 font-heading text-3xl font-semibold text-ink-900">Uma pagina de servicos com mais pulso comercial e mais proximidade com a comunicacao real da marca.</h2>
-          <div className="mt-6 grid gap-4 md:grid-cols-2">
-            <div className="rounded-[var(--radius-lg)] border border-white/80 bg-white/90 p-4">
-              <p className="inline-flex items-center gap-2 font-semibold text-ink-900">
-                <Scissors className="h-4 w-4 text-brand-700" />
-                Como funciona
-              </p>
-              <p className="mt-2 text-sm leading-6 text-stone-500">
-                Escolha o servico, confira valor e duracao media e siga para um agendamento guiado com menos duvida.
-              </p>
-            </div>
-            <div className="rounded-[var(--radius-lg)] border border-white/80 bg-white/90 p-4">
-              <p className="inline-flex items-center gap-2 font-semibold text-ink-900">
-                <HeartHandshake className="h-4 w-4 text-[var(--magenta-600)]" />
-                Se precisar de ajuda
-              </p>
-              <p className="mt-2 text-sm leading-6 text-stone-500">
-                O WhatsApp continua como apoio rapido para porte, cuidado, preparacao do pet e duvidas antes do horario.
-              </p>
-            </div>
-            <div className="rounded-[var(--radius-lg)] border border-white/80 bg-white/90 p-4">
-              <p className="inline-flex items-center gap-2 font-semibold text-ink-900">
-                <Sparkles className="h-4 w-4 text-brand-700" />
-                Mais cara de pet shop
-              </p>
-              <p className="mt-2 text-sm leading-6 text-stone-500">
-                O visual ficou mais roxo, mais vivo e mais alinhado com a energia promocional das artes do Laikao.
-              </p>
-            </div>
-            <div className="rounded-[var(--radius-lg)] border border-[var(--sun-300)] bg-[var(--sun-100)]/75 p-4">
-              <p className="inline-flex items-center gap-2 font-semibold text-brand-950">
-                <WashingMachine className="h-4 w-4 text-brand-700" />
-                Cuidado e rotina
-              </p>
-              <p className="mt-2 text-sm leading-6 text-brand-900/80">
-                Banho, tosa, hidratacao, escovacao e manutencao aparecem de forma mais forte e mais comercial.
-              </p>
-            </div>
+        <article className="surface-default border border-brand-100 bg-white p-6 shadow-[var(--shadow-soft)]">
+          <p className="eyebrow">Como funciona</p>
+          <h2 className="mt-2 font-heading text-3xl font-semibold text-ink-900">Fluxo simples para fechar o agendamento.</h2>
+          <div className="mt-5 grid gap-3 sm:grid-cols-2">
+            <div className="rounded-[18px] border border-stone-100 p-4"><p className="inline-flex items-center gap-2 font-semibold text-ink-900"><CalendarClock className="h-4 w-4 text-brand-700" />Escolha o servico</p><p className="mt-1 text-sm text-stone-600">Veja valor e duracao.</p></div>
+            <div className="rounded-[18px] border border-stone-100 p-4"><p className="inline-flex items-center gap-2 font-semibold text-ink-900"><Star className="h-4 w-4 text-brand-700" />Selecione dia e horario</p><p className="mt-1 text-sm text-stone-600">Agenda mensal/semanal/diaria.</p></div>
+            <div className="rounded-[18px] border border-stone-100 p-4"><p className="inline-flex items-center gap-2 font-semibold text-ink-900"><ShieldCheck className="h-4 w-4 text-brand-700" />Confirme pagamento</p><p className="mt-1 text-sm text-stone-600">Pix 50% ou 100% e cartao.</p></div>
+            <div className="rounded-[18px] border border-stone-100 p-4"><p className="inline-flex items-center gap-2 font-semibold text-ink-900"><MessageCircle className="h-4 w-4 text-success-500" />Suporte rapido</p><p className="mt-1 text-sm text-stone-600">WhatsApp para duvidas antes de confirmar.</p></div>
           </div>
-          <a
-            href="https://wa.me/5511980512871"
-            target="_blank"
-            rel="noreferrer"
-            className="mt-6 inline-flex items-center gap-2 text-sm font-semibold text-brand-700 hover:text-brand-800"
-          >
-            Tirar duvidas antes de agendar
-            <ArrowRight className="h-4 w-4" />
-          </a>
         </article>
-
         <PracticalLinksGrid />
       </section>
     </div>
